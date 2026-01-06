@@ -1,0 +1,229 @@
+############################################################
+# Example solutions to the data wrangling challenge
+# Data Science in Ecological and Environmental Sciences 2025
+# 
+# The script includes a number of fixes you could have made 
+# in the code. It retains most of the starter script code 
+# for reference but it has been commented out to prevent 
+# issues when running the correct code. 
+############################################################
+
+# Task: 
+# Starter code for data wrangling challenge
+# Please rewrite this code to make it as efficient as possible using pipes (dplyr)
+
+# Libraries
+# library(dplyr)  # Fix 1: dplyr is redundant here as it is part of the tidyverse package so we can remove it.
+library(tidyverse)
+# library(beepr)  # Fix 2: beepr package does not do anything useful (at least 
+                  # in terms of code correctness, moral support is a different matter!) so we can remove it.
+library(ggthemes)
+library(gridExtra)
+
+# Load Living Planet Data
+LPI_data <- read.csv("LPI_birds.csv")
+
+# Explore data
+head(LPI_data)
+summary(LPI_data)
+summary(LPI_data$Class)
+str(LPI_data)
+
+# Reshape data into long form
+LPI_long <- pivot_longer(data = LPI_data, cols=25:69, names_to = "year",values_to = "pop")
+
+# Apply various processing steps to the data 
+# Fix 3: individual calls of functions and writing into new variables is not 
+# an effective way to code as it creates too many objects which can fill up computer memory.
+# Use pipes %>% instead! Below is a code that combines all the processing steps up to
+# filtering out curlew population variable. 
+#
+# If you wanted, you could include both the previous processing step (converting to long format)
+# as well as all the steps up to the plotting in the processing pipeline. 
+# I decided to leave in some intermediate steps for clarity. 
+
+LPI_long_proc <- LPI_long %>%
+  # Fix 4: Repeating mutate/filter/select calls is not necessary.
+  # You can simply combine the operations within a single function call 
+  # separated by comma (or logical operators for filter). 
+  mutate(year = parse_number(LPI_long$year), # Extract numeric values from year column
+         genus_species = paste(LPI_long$Genus, LPI_long$Species, sep="_"), # Make concatenation of genus and species
+         genus_species_id = paste(LPI_long$Genus, LPI_long$Species, LPI_long$id, sep="_") # Make concatenation of genus and species and population id
+         ) %>%
+  filter(is.finite(pop) & !is.na(pop)) %>% # Only keep rows with numeric values
+  group_by(genus_species_id) %>% 
+  # Fix 5: In the original code, there was redundant variable meanyear created
+  # and immediately removed so we just remove these lines altogether. 
+  mutate(maxyear = max(year),  # Create max and min year variables 
+         minyear = min(year),  # Here lengthyear could be calculated in a single line as the scalepop variable
+         lengthyear = maxyear - minyear,
+         scalepop = (pop-min(pop))/(max(pop)-min(pop)), 
+         ) %>%
+  filter(is.finite(scalepop) & lengthyear > 5) %>% # Only keep rows with numeric values and rows with more than 5 years of data
+  ungroup() %>% # Remove any groupings
+  dplyr::select(-c(Data.source.citation, Authority)) # Remove unnecessary columns
+
+
+
+# # Extract numeric values from year column
+# LPI_long$year <- parse_number(LPI_long$year)
+# 
+# # Make concatination of genus and species
+# LPI_long$genus_species <- paste(LPI_long$Genus, LPI_long$Species, sep="_")
+# 
+# # Make concatination of genus and species and population id
+# LPI_long$genus_species_id <- paste(LPI_long$Genus, LPI_long$Species, LPI_long$id, sep="_")
+# 
+# # Only keep rows with numeric values
+# LPI_long_fl <- filter(LPI_long, is.finite(pop)) %>% filter(!is.na(pop))
+# 
+# # Create columns for the first and most recent years that data were collected
+# LPI_long_fl_1 <- LPI_long_fl %>% group_by(genus_species_id) %>% mutate(maxyear=max(year)) %>% mutate(minyear=min(year)) %>% mutate(meanyear=mean(year)) %>% select(-meanyear)
+# 
+# # Make a new data frame
+# LPI_long_fl_2 <- LPI_long_fl_1
+# 
+# # Create a column for the length of time data available
+# # This is the duration of monitoring for each population
+# LPI_long_fl_2$lengthyear <- LPI_long_fl_2$maxyear-LPI_long_fl_2$minyear
+# 
+# # Scale population trend data
+# LPI_long_fl_3 <- LPI_long_fl_2 %>% mutate(scalepop=(pop-min(pop))/(max(pop)-min(pop)))
+# 
+# # Only keep rows with numeric values
+# LPI_long_fl_4 <- LPI_long_fl_3 %>% filter(is.finite(scalepop))
+# 
+# # Only keep rows with more than 5 years of data
+# LPI_long_fl_5 <- LPI_long_fl_4 %>% filter(lengthyear > 5) 
+# 
+# # Remove any groupings
+# LPI_long_fl_6 <- LPI_long_fl_5 %>% ungroup()  
+# 
+# # Remove unnecessary columns
+# LPI_long_fl_6 <- LPI_long_fl_6 %>% select(-Data.source.citation)
+# LPI_long_fl_6 <- LPI_long_fl_6 %>% select(-Authority)
+
+# LPI_long <- LPI_long_fl_6
+
+
+# Filter out Curlew populations 
+# Fix 6: In filtering out curlew as our target species, 
+# there are several intermediate steps included which 
+# are not necessary at all - it is sufficient to filter 
+# by common name or species 
+Curlew2 <- LPI_long_proc %>% filter(Common.Name == 'Eurasian curlew')
+
+# Filter out Curlew populations
+# Aves <- LPI_long %>% filter(Class=="Aves")
+# Birds <- Aves %>% filter(Common.Name == "Eurasian curlew")
+# Birds <- Aves %>% filter(Order=="Charadriiformes")
+# Birds <- Aves %>% filter(Family == "Scolopacidae")
+# Curlew <- Birds %>% filter(Genus=="Numenius")
+# Curlew2 <- Curlew %>% filter(Species=="arquata")
+
+# Fix 7: This line does not do anything useful so we remove it
+# Curlew2 <- Curlew %>% group_by(Country.list) %>% ungroup()
+
+# List the country options
+unique(Curlew2$Country.list)
+
+# Pick the countries of interest
+CurlewUnitedKingdom <- Curlew2 %>% filter(Country.list=="United Kingdom")
+
+# Fix 8: This line is redundant as it does not bide two data frames by rows
+# CurlewPops <- rbind(CurlewUnitedKingdom)
+
+# Fix 9: ggplot2 is already included in the tidyverse collection of packages
+# so we can remove it 
+# library(ggplot2)
+
+# Data for plotting
+# Fix 10: Again, we combine multiple function calls into a pipeline using %>%. 
+# Similar as at the beginning of the script, you could join all of these into one 
+# big pipeline but I leave in some intermediate steps for clarity. 
+plotCurlewData <- CurlewUnitedKingdom %>% 
+  select(Country.list,year,scalepop,id,lengthyear) %>% 
+  # Fix 11: Remove the group_by() call as it is not required here
+  # group_by(id) %>%
+  filter(lengthyear>15)
+
+
+# plotCurlewData <- CurlewPops %>% select(Country.list,year,scalepop,id,lengthyear)
+# 
+# # Get only the populations with more than 15 years of data from those locations
+# plotCurlewData <-plotCurlewData %>% group_by(id) %>% filter(lengthyear>15)
+
+
+
+# Plot Curlew populations over time
+# You can beautify this graph if you want, but don't change the graph code so much that you produce a totally different graph
+# (f1 <- ggplot(plotCurlewData, aes(x=year, y=scalepop, group = id, colour=Country.list))+geom_line()+geom_point()+theme(legend.position = "bottom")+labs(title="Curlew trends")+theme(plot.title=element_text(size=15, hjust=0.5)))
+
+# Fix 12: We can simplify the ggplot code by 
+# putting all the theme elements into a single theme() call. 
+# Additionally, it's also good practice to reindent 
+# the different elements of the code to improve readability. 
+(f1 <- ggplot(plotCurlewData, 
+              aes(x = year, 
+                  y = scalepop, 
+                  group = id, 
+                  colour = Country.list)) +
+    geom_line() +
+    geom_point() +
+    labs(title="Curlew trends") + 
+    theme(legend.position = "bottom",
+          plot.title=element_text(size=15, hjust=0.5)
+          )
+  )
+
+
+# Load Site Coordinate Data
+site_coords <- read.csv("site_coords.csv")
+head(site_coords)
+
+# Merge Curlew data with site coordinates
+Curlew_sites <- left_join(plotCurlewData, site_coords, by = "id")
+                        
+# Make map of where the Curlew populations are located
+# You can beautify this map if you want, but don't change the map code so much that you produce a totally different graph
+(f2 <- ggplot(Curlew_sites, aes(x=Decimal.Longitude, y=Decimal.Latitude, colour=Country.list))+borders("world", colour = "gray40", fill = "gray75", size = 0.3) +coord_cartesian(xlim = c(-10, 35), ylim = c(30, 70)) +theme_map() +geom_point(size=4) +theme(legend.position="none") +theme(plot.title=element_text(size=15, hjust=0.5)) +labs(title="Population map"))
+
+# Fix 13: 
+# Again, we can simplify the ggplot code by putting all the theme elements together
+# and additionally also reordering some of the elements for cleaner code.
+# A good exercise here is to move the geom_point() and borders() elements in different 
+# order - this will affect whether the point is draw on top of the map or below it!
+(f2 <- ggplot(Curlew_sites, 
+              aes(x=Decimal.Longitude, 
+                  y=Decimal.Latitude, 
+                  colour=Country.list)) +
+    borders("world", 
+            colour = "gray40",
+            fill = "gray75", 
+            size = 0.3) +
+    geom_point(size=4) +
+    coord_cartesian(xlim = c(-10, 35),
+                    ylim = c(30, 70)) +
+    labs(title="Population map")) +
+    theme_map() +
+    theme(legend.position="none",
+          plot.title=element_text(size=15, hjust=0.5))
+
+
+# Make a panel of the two graphs
+curlew_two_panels <- grid.arrange(f1, f2, ncol = 2)
+
+# Remember to save your graphs with code and insert the code in your script
+
+# Fix 14: We can use ggsave() to save our plot with code! 
+ggsave(curlew_two_panels,
+       filename = 'curlew_trend_and_pop_map.png',
+       units = 'in',
+       height = 6,
+       width = 10)
+
+# Optional: 
+# While the purpose of this exercise was to focus on writing clean code
+# and testing your knowledge of different data wrangling and plotting functions,
+# there are several code formatting steps that you could improve such as 
+# adding sections, providing more useful comments, header at the beginning of the code, etc. 

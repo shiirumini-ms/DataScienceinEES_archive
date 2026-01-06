@@ -1,0 +1,47 @@
+# In class activity for Data Science in EES
+# Starter script written by Isla Myers-Smith; modified by Helen Waters, Jakub Wieczorkowski, James Watt
+# 10th October 2019/12th October 2021/12th Oct 2023/10th Oct 2024
+ 
+# Instructions ----
+
+# To answer your question you need to use a pipe and dplyr functions. You can also use other functions. Here is a list of the dplyr functions:
+
+# https://dplyr.tidyverse.org/reference/
+
+# Before you start coding, you need to draw a work flow diagram in a file, on paper or a white board for how you are going to design your code. Then you need to take a screen cap/photo of that diagram and upload it to the folder for this activity.
+
+# Then you need to translate your workflow diagram into comments in the R code.
+
+# Then you can start coding.
+
+
+# Starter code ----
+
+# Librarys
+library(tidyverse)
+library(skimr)
+
+# Load Living Planet Data
+load("weekly_materials/week_03/LPI_species.Rdata")
+View(LPI_species)
+
+# How many unique species are there?
+
+# Challenge 1 ----
+# How many bird species are monitored, what are the three most monitored birds? 
+# How many mammal species are monitored, what are the three most monitored mammals?
+# Are birds monitored on average for longer than mammals across all populations?
+
+# Challengep 2 ----
+# What are the top three countries with the most populations monitored? Canada, Norway and US
+# What are the bottom three countries with the least populations monitored?
+# What country has on average the longest duration of population monitoring? Norway, Russian Federation
+
+# Challenge 3 ----
+# Rank all of the biomes from most to least well represented with populations monitored?  
+# What is the biome with the most different genera monitored?
+
+
+# Challenge 4 ----
+# What are the top three the most frequent monitoring methods in the monitoring of populations? 
+# What is the most common monitoring method for populations that have been monitored from 1970 to 2000?

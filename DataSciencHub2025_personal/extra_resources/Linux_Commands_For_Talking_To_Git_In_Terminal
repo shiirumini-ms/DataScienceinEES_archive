@@ -1,0 +1,36 @@
+## Welcome, welcome .... to the realm of Linux!
+
+### Linux commands for forcing Git via Terminal
+
+make a directory on your local computer
+`mkdir ~/git_test`
+
+find your current directory 
+cd ~/git_test
+
+#### 1. make the folder you created into a git repository 
+`git init`
+
+#### 2. create a file 
+`touch README.md`
+
+#### 3. ‘select’ the file you want to commit and push to git online 
+`git add README.md`
+
+To check what files have been selected
+`git status`
+
+#### 4. commit the selected files and add a note 
+`git commit -m "Your commit message here"`
+
+Create the repository online with the EXACT same name, as it now only exist on your local 
+
+#### 5. add https to connect online repository to your
+
+`git remote add origin <HTTPS_LINK>`
+
+#### 6. push files 
+`git push -u origin main`
+
+### Updating your local git repository 
+`git pull origin main`

@@ -1,0 +1,205 @@
+#############################################################
+# _          _         _                            ______ 
+#| |        | |       | |                           | ___ \
+#| |     ___| |_ ___  | |     ___  __ _ _ __ _ __   | |_/ /
+#| |    / _ \ __/ __| | |    / _ \/ _` | '__| '_ \  |    / 
+#| |___|  __/ |_\__ \ | |___|  __/ (_| | |  | | | | | |\ \ 
+#\_____/\___|\__|___/ \_____/\___|\__,_|_|  |_| |_| \_| \_|
+#                                                          
+#                                                          
+# Data Science for Ecological and Environmental Sciences - Intro to R
+# Author: James Watt
+# Date: 2025_08_10
+# Description:   Set of Self-Check Exercises to Reinforce the Core Learning
+#                Objectives for the DataCamp Course 1 Material and the Intro to R Coding Club Tutorial
+############################################################
+
+################################################
+BEFORE YOU START
+###############################################
+# 1. Create a new RStudio Project for this exercise.
+#    - File > New Project > New Directory > New Project.
+# 2. Inside your new project folder, create a subfolder called "data".
+# 3. Download the CSV file called "plants.csv" from the course github weekly materials folder (week 1)
+#    and place it in the "data" folder. 
+# 4. Paste this script into the script window in RStudio. Work through it section by section.
+# 5. Remember you can run code line by line by clicking on the line and using Ctrl+Enter (Windows) 
+#    or Cmd+Enter (Mac).
+
+
+
+# ITS ALWAYS BETTER TO HAVE COMPLETED THE TUTORIALS BEFORE CLASS BUT YOU CAN 
+# GO BACK AND CHECK THE CODING CLUB TUTORIAL OR DATA CAMP EXERCISES TO HELP YOU
+# THIS ISNT AN EXAM!!!
+
+############################################################
+# Scripts 
+############################################################
+
+
+# QUESTION : Why is scripting better than working only in the Console?
+
+# TASK 1: Save this file as "R_coding_is_awesome".
+# TASK 2: Add your name and today’s date at the top of the script.
+# TASK 3: Run a line of code in the script using Ctrl+Enter (Windows) 
+#           or Cmd+Enter (Mac). For example, run 2+2.
+
+# Write and run your answer here:
+
+############################################################
+# 1. Objects, Properties, and Classes
+############################################################
+
+
+#R is a Object-Oriented Programming language (OOP) In R, objects are central to 
+#how data and functions are organized and exectuted
+
+#. Let's explore the key components of objects in R:
+
+#Name (Identifier): In R, every object has a name or identifier. 
+#This name is used to reference the object within your R environment. 
+#For example, if you create a vector containing soil pH values, you might name it soil_pH. 
+#This identifier allows you to easily access and manipulate the object throughout your analysis.
+
+#Value (The Data Stored): The value of an object in R refers to the data it holds. This can range from simple numeric vectors to complex data frames or lists. For instance, the customer_data object might contain columns like Name, Address, and Purchase_History. These values represent the actual data you are working with and are essential for performing analyses and generating insights.
+
+#Class (Type of Object): In R, every object has a class, which defines its type and behavior. 
+#The class determines how the object can be used and what operations can be performed on it. 
+#Common classes in R include numeric, character, factor, data.frame, and list. 
+#For example, a environmental dataset with species names, abundances, soil tmeperatures etc. would typically be of 
+#class data.frame as it contains a mixture of numeric and character values,
+#allowing you to perform data manipulation operations such as filtering, sorting, and aggregating (methods).
+
+# QUESTION 1: How does class() help you understand your data?
+
+# TASK 1.1: Create an object that stores a temperature value of 14 °C.
+# Hint: use `<-`
+# your code here
+
+# TASK 1.2: Check the class of the object you created.
+# Hint: what function tells you the class?
+# your code here
+
+# TASK 1.3: Create another object with text (e.g. a site name where the temperature was collected). 
+# Combine it with your numeric object in a vector. 
+# What happens to the types?
+# your code here
+
+# Write your answer here:
+
+
+
+############################################################
+# 2. Libraries and Packages
+############################################################
+
+# Packages extend R’s abilities. You only install them once, but you must load them every session.
+
+# QUESTION 2: Why do we need to load packages every session?
+
+# TASK 2.1: Install the tidyverse  package. This is a commonly used for data science package and you will be using it alot!
+
+
+
+# TASK 2.2: Load the package into R.
+
+
+# TASK 2.3: Open the help file for the function ggplot which is featured in the tidyverse package.
+# and write down what the call ggplot does
+# Hint: use `?`
+# 
+
+# Write your answer here:
+#
+############################################################
+# 3. Importing Your Own Data
+############################################################
+
+# R is super pedantic, often we need to explicitly tell it where 'things are' such as exactly where data is held on our computer, 
+# however next week we will about Relative file paths which make projects reproducible across differnet computers.
+# Example:  "C:/Users/Name/Data_Sci/Data/plants.csv" (absolute) vs "Data/plants.csv" (relative)
+
+# QUESTION 3: Why are absolute paths not reproducible?
+
+# TASK 3.1: Check your current working directory. And set it to your data folder within the new R project folder you created earlier
+
+
+# TASK 3.2: Import the CSV file you placed in the "data" folder. 
+# Hint: use read.csv() 
+# 
+############################################################
+# 4. Exploring Data
+############################################################
+
+# There are alot of different calls (methods) we can use to explore data some of the most basic in R are
+# - str() shows the structure and classes of objects.
+# - summary() gives descriptive statistics.
+# - Functions like mean(), max(), min() explore numeric data.
+
+# QUESTION 4: What different information do str() and summary() provide?
+
+# TASK 4.1: Summarise your imported data.
+# Write your answer here:
+
+# TASK 4.2: Find the mean of one numeric column (e.g. cover).
+# Write your answer here:
+
+# TASK 4.3: Add a new column with a log transformation and compute its mean.
+# hint: X$Y will create a new column called Y in the object called X
+#
+#Write your answer here:
+
+
+
+############################################################
+# 5. Vectors 
+############################################################
+
+# Vectors hold multiple values of the same type.
+# Operations are applied element-wise, elements can be added together (as long as they have the same properties i.e length etc.)
+
+
+# TASK 5.1: Create a new vector of bird counts from 5 sites where 12,13,5,20,15 birds were spotted respectively. 
+#           Add this vector as a new column in your plants dataset.
+# your code here
+
+# TASK 5.2: Calculate the mean, max, and min of the bird counts column.
+# your code here
+
+# TASK 5.3: Add your bird counts column to a shorter vector 
+#           (e.g.make a shorter vector e.g. c(1,2)) and check what happens.
+# Write your answer here:
+
+# QUESTION 5: What happens when adding a short vector to a longer one?
+# 
+
+
+############################################################
+# 6. Making Simple Figures
+############################################################
+
+# THEORY:
+# Base R plots are quick visualisations. 
+# Use png() + dev.off() to save them to files.
+
+# QUESTION 6: Why do we need dev.off() after saving plots?
+
+# TASK 6.1: Make a scatterplot of site temperature vs bird counts.
+# your code here
+
+# TASK 6.2: Save the scatterplot as a PNG.
+# Hint: wrap plot() between png("filename.png") and dev.off().
+# your code here
+
+
+############################################################
+# END
+############################################################
+
+# Skills practised:
+# - Scripts and workflow
+# - Objects, properties, and classes
+# - Packages and libraries
+# - Importing and exploring data
+# - Vectors and data frames
+# - Making and saving simple figures

@@ -1,0 +1,6 @@
+- One member of each Hack-a-thon group should fork the repo found at this URL - https://github.com/EdDataScienceEES/GEE-Hack-a-thon.git
+- Invite your group members to the forked repo
+- Read the instructions
+- Complete the challenge (as much as you can - dont forget to deligate and assign roles)
+- upload your output to the week 9 folder on the DataSci 2025 hub
+- win bragging rights (and sweets)
