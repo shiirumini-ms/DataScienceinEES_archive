@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Tutorial</title>
+
+<!-- CSS Styling -->
+<style>
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0 20px;
+}
+
+/* Horizontal menu bar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  gap: 50px; /* spacing between menu items */
+  background-color: #f0f0f0;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.navbar a {
+  text-decoration: underline;
+  color: #0077cc;
+  transition: color 0.2s;
+}
+
+.navbar a:hover {
+  color: #005999;
+}
+
+/* Header image */
+.header {
+  width: 100%;
+  height: 250px;
+  background-image: url('header.jpg'); /* adjust path */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 40px;
+  color: white;
+  text-shadow: 0 0 5px rgba(0,0,0,0.7);
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+.header h1 {
+  margin: 0 0 10px 0;
+  font-size: 3em;
+}
+
+.header h3 {
+  margin: 0;
+  font-weight: 300;
+}
+
+/* Callouts */
+.callout {
+  border-left: 5px solid #669ea0;
+  background-color: #f0f8f8;
+  padding: 10px 15px;
+  margin: 20px 0;
+  border-radius: 4px;
+}
+
+/* Code block styling */
+pre {
+  background-color: #f7f7f7;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  font-family: monospace;
+  position: relative;
+}
+
+/* Copy button */
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  cursor: pointer;
+  background-color: #669ea0;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.copy-btn:hover {
+  background-color: #4d7b85;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 15px 0;
+  margin-top: 40px;
+  border-top: 1px solid #ddd;
+  font-size: 0.9em;
+  color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Horizontal Menu -->
+<div class="navbar">
+  <a href="#tutorial-aims">Tutorial Aims & Content</a>
+  <a href="#challenge">Challenge</a>
+  <a href="#resources">Useful Resources</a>
+  <a href="#contact">Contact</a>
+</div>
+
+<!-- Header Image -->
+<div class="header">
+  <h1>Working with Nested Data set</h1>
+  <h3>Build multiple models using <code>purrr</code></h3>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- Add the Copy Button -->
+<style>
+pre {
+  background-color: #f7f7f7;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  font-family: monospace;
+  position: relative; /* ensures button is positioned relative to pre */
+}
+
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  cursor: pointer;
+  background-color: #669ea0;  /* normal button color */
+  color: white;               /* text color */
+  border: none;
+  border-radius: 3px;
+  transition: background-color 0.2s; /* smooth hover transition */
+}
+
+/* Change color on hover */
+.copy-btn:hover {
+  background-color: #4d7b85;  /* darker shade when hovering */
+}
+</style>
+
+
+
+<!-- Add Menu Headings -->
+<div style="
+  width: 100%; 
+  background-color: #FFFFFF; 
+  padding: 15px 0; 
+  display: flex; 
+  justify-content: center;  
+  font-weight: plain;
+  box-sizing: border-box;
+  padding-left: 0px;       
+  border-radius: 0px;
+
+">
+  <a href="#tutorial-aims" style="color: #669ea0; margin-right: 100px;">Tutorial Aims & Content</a>
+  <a href="#challenge" style="color: #669ea0; margin-right: 100px;">Challenge</a>
+  <a href="#resources" style="color: #669ea0; margin-right: 100px;">Useful Resources</a>
+  <a href="#contact" style="color: #669ea0">Contact</a>
+  
+</div>
+<!-- Add Title -->
+<div style="
+  position: relative; 
+  width: 100%; 
+  height: 220px; 
+  background-image: url('header.jpg'); 
+  background-size: cover; 
+  background-position: center; 
+  border-radius: 6px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  padding-left: 20px; 
+  color: white; 
+  text-shadow: 0 0 5px rgba(0,0,0,0.7);
+">
+
+  <!-- Header title -->
+  <h1 style="margin: 0; font-size: 2.4em;">Working with Nested Data set</h1>
+  <h3 style="margin: 0; font-weight: 300;">Build multiple models using <code>purrr</code></h3>
+</div>
