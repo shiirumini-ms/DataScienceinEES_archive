@@ -1,0 +1,423 @@
+---
+title: "WWF Report\\newline Red Fox Population Trend in late 20th Century" 
+author: "B241110" 
+date: \today 
+params: 
+    logo: logo.png
+    cover: cover-1.png 
+    iblue: 2b4894 
+    igray: d4dbde 
+documentclass: article 
+fontsize: 10 
+papersize: a4paper 
+output: 
+  IReports::businessReport:
+    keep_tex: TRUE
+    latex_engine: xelatex
+    resetStyleFiles: FALSE
+header-includes: 
+  - \usepackage{titlesec} 
+  - \usepackage{hyperref} 
+  - \newcommand{\pandocbounded}[1]{#1}
+  - \newcommand{\logo}{`r gsub("_", "\\_", params$logo)`}
+  - \newcommand{\cover}{`r gsub("_", "\\_", params$cover)`}
+  - \newcommand{\iblue}{`r params$iblue`}
+  - \newcommand{\igray}{`r params$igray`}
+  - \usepackage{ragged2e} 
+  - \justifying
+include-before:
+  - \renewcommand{\contentsname}{Table of Contents}
+  - \renewcommand{\thepage}{\arabic{page}}
+---
+
+\maketitle
+\tableofcontents
+\addcontentsline{toc}{section}{Contents}
+\clearpage
+
+```{r, setup, include = FALSE}
+# load libraries 
+## tidying / data wrangling
+library(tidyverse)      
+library(broom.mixed)    
+
+## model construction / analysis
+library(lme4)           
+library(DHARMa)         
+library(performance)  
+library(StatisticalModels)
+
+## formatting / visualization
+library(ggthemes)      
+library(ggeffects)     
+library(stargazer)  
+    
+# settings
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/Owner/Library/CloudStorage/OneDrive-UniversityofEdinburgh/#00_DSinEES/WWF/wwf-report")
+```
+
+# Introduction and Summary
+
+\subsection{About the Species}
+
+*Vulpes vulpes* (red fox) is an omnivore widely found across the Northern Hemisphere, thriving in temperate and boreal climate. Its flexible diet allow them to inhabit wide range of habitats like forests, grasslands, and urban environments. However, their adaptability also makes the species a major carrier of *Rabies lyssavirus* (“rabies”), posing risks to wildlife populations, ecosystem dynamics, and public health.
+
+During 1970–2000, rabies spread across continental Europe (Delcourt et al., 2022), but its effect on population abundance remains uncertain.
+
+\subsection{Research Question}
+
+This report aims to test how red fox population changed over 1970-2000 between regions affected by rabies and those free from the disease. We expected declines where rabies occurred and stable or increasing trends elsewhere.
+
+\subsection{Key Findings}
+
+Red fox populations declined by 2.3 % per year in rabies-affected regions and increased by 1.8 % per year in rabies-free regions, suggesting rabies are associated with the population decline.
+
+\pagebreak
+
+# Methods
+
+\subsection{Data Source and Preparation}
+
+Population data for red fox were obtained from the Living Planet Database (LPI, 2024), a global repository of vertebrate population time series derived from scientific publications, online databases, and grey literature. Each record includes abundance, year, population ID, and associated metadata (Appendix). Records span 1970–2020, and we analysed years covering 1970–2000, considering that rabies was eradicated by 2000 (Lojkić et al., 2021).
+
+Based on published literatures (Nyberg et al., 1992; Pastoret & Brochier, 1999; Delcourt et al., 2022), countries were classified as rabies-present (Belarus, Finland) or rabies-absent (Spain, United Kingdom, United States) (Fig.1). \vspace{1em}
+
+```{r, cleaning, warning=FALSE, message=FALSE, error=FALSE, echo=FALSE, include=FALSE}
+# load raw data 
+load("data/LPI_data.Rdata")
+
+## gather years into "year" and set them as numeric
+data <- gather(data, year, pop, c(25:69)) 
+data$year <- gsub("X", "", data$year) %>% 
+  as.numeric(data$year)
+
+## Filter target species: "Red fox" 
+fox <- data %>% 
+  filter(Common.Name == "Red fox")
+
+## ---- Data Cleaning ----  
+pre_2000 <- fox %>% 
+  filter(is.finite(pop) & !is.na(pop)) %>%           # numeric pop only
+  filter(year < 2000) %>%  # keep pre-2000 only
+  filter(Units != "Number of foxes seen on carcasses/100 hours") %>%  # remove unwanted Units
+  mutate(yearscale = year - min(year), # get relative year 
+    region2 = case_when(
+    Region %in% c("Asia", "Europe") ~ "Europe", # include Belarus as Europe
+    TRUE ~ "North America"), 
+    rabies = case_when(
+      Country.list %in% c("United States", "United Kingdom", "Spain") ~ "Absent",
+      TRUE ~ "Present")) %>% # define rabies-absent/present regions
+  group_by(id) %>% 
+  filter(n() >= 5) %>%    # populations with ≥5 years of obs
+  ungroup() %>%
+  mutate(across(where(is.character), as.factor)) %>%  # convert chars to factors
+  dplyr::select(pop_id = id,
+                yearscale,
+                pop,
+                biome,
+                region = region2,
+                country = Country.list,
+                rabies) %>%
+  mutate(pop = round(pop * 10))                      # scale pop
+
+pre_2000$pop_id <- as.factor(pre_2000$pop_id)
+```
+
+```{r, mapping, warning=FALSE, error=FALSE, message=FALSE, echo=FALSE, fig.width=6.5, fig.height=4.5, fig.align='center'}
+## ---- Create Study Site Map ----
+
+thismap <- map_data("world") %>% 
+  # set colours 
+  mutate(rabies = case_when(
+    region %in% c("USA", "UK", "Spain") ~ "Absent", 
+    region %in% c("Finland", "Belarus") ~ "Present",
+    TRUE ~ "NA")
+  ) 
+thismap$rabies <- factor(thismap$rabies, 
+                         levels = c("Absent", "Present", "NA"))
+
+# Use scale_fiil_manual to set correct colors
+studysite <- 
+  ggplot(thismap, aes(long, lat, fill=rabies, group=group)) + 
+  geom_polygon(colour = "black") + 
+  coord_cartesian(xlim = c(-125, 35),
+                  ylim = c(25, 70)) + 
+  scale_fill_manual(
+    values = c(
+      "Present" = "#00BFC4",
+      "Absent" = "#F8766D",
+      "NA" = "white"
+    ),
+    na.value = "white",     # ensures regions with NA are white
+    name = "Rabies"  # legend title
+  ) +
+  labs(x = "Longitude", y = "Latitude") +
+  annotate("text", x = 24, y = 25, label = "CRS:WGS84", color = "black", 
+           size = 3) +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 1.0)
+  )
+
+ggsave("/Users/Owner/Library/CloudStorage/OneDrive-UniversityofEdinburgh/#00_DSinEES/WWF/wwf-report/figure/studysitemap.png",
+       plot = studysite, width = 7, height = 5, dpi = 300)
+
+studysite
+```
+
+Fig.1: Map of rabies presence by country where LPD population records are available (created based on literature review).
+
+```{r, devoff, warning=FALSE, message=FALSE, error=FALSE, include=FALSE}
+# dev.off() 
+# this dev.off() led to an error when ran, which is likely due to RStudio crash, hence, commented out.
+```
+
+\vspace{1em}
+
+Only populations counting live foxes, with ≥5 years of data were included. Year was scaled so the first observation equaled 0, and abundance values were multiplied by 10 and rounded to meet Poisson requirements (see below).
+
+\subsection{Model Choice and Justification}
+
+We fitted a Poisson Generalised Linear Mixed Model (GLMM) with a log link to model abundance change through time. The Poisson family was chosen because population abundance is inherently a count data with positively skewed distribution. Fixed effects were scaled year, rabies presence, and their interaction to test for differing temporal trends. Population ID was included as a random effect to account for repeated measures and differing sampling units among studies.
+
+```{r, model, warning=FALSE, message=FALSE, error=FALSE, include=FALSE}
+## ---- MODEL ----
+# Fit poisson (log) generalised mixed effects model
+md_pre <- glmer(pop ~ yearscale * rabies + 
+                  (yearscale|pop_id), 
+                data = pre_2000, 
+                family = "poisson")
+
+# realm, biome, and country are not considered because 
+# no enough levels for each class per category is available. 
+```
+
+\subsection{Assumption Checks}
+
+Residual dispersion, normality, and homoscedasticity were evaluated with DHARMa package, and model singularity was tested using performance package. All data processing, diagnostics, and visualisation were conducted in RStudio v4.5.1.
+
+```{r, assumption, include=FALSE, error=FALSE, warning=FALSE, message=FALSE}
+
+## ---- ASSUMPTION CHECK ----
+sim_res <- simulateResiduals(fittedModel = md_pre, n = 1000)  
+png("/Users/Owner/Library/CloudStorage/OneDrive-UniversityofEdinburgh/#00_DSinEES/WWF/wwf-report/figure/diagnostics.png")
+plot(sim_res)
+dev.off()
+
+# significant deviation p < 0.05, in qqplot
+# residuals are not normally distributed 
+
+# non-uniform distribution of scaled individuals
+# residuals near 0, and 1, clusters likely due to # varying units & means of meausrements by population
+
+# residual vs. predicted
+testDispersion(sim_res)
+# dispersion = 0.035097, p-value = 0.308
+# non-dispersed 
+
+performance::check_singularity(md_pre)
+# non-sigularity confirmed.
+```
+
+# Results
+
+Red fox populations declined by 2.3% per year in rabies-affected regions between 1970 and 2000, and populations in rabies-free regions increased by 1.8% per year (Fig.2).
+
+```{r, accuracy, warning=FALSE, error=FALSE, message=FALSE, include=FALSE}
+## ---- ACCURACY ASSESSMENT ----
+## PRE-2000 ##
+
+R2GLMER(md_pre)
+# marginal : r2 = 17.30%
+# conditional : r2 = 71.79% 
+
+# get RMSE per Rabies-group 
+rmse <- pre_2000 %>%
+  mutate(pred = predict(md_pre, type = "response")) %>% 
+  group_by(rabies) %>%
+  summarise(
+    RMSE = sqrt(mean((pop - pred)^2))) %>%
+  ungroup() %>% 
+  mutate(label = paste0("RMSE == ", round(RMSE, 1)))
+    
+# RMSE for rabies present: 64.83315
+# RMSE for rabies absent: 73.79909
+
+64.83315/800 
+# 8.1% difference between actual points from predicted
+73.79909/800
+# 9.2% deviation of actual points from predicted 
+
+summary(md_pre)
+# pop id does not impact the slope but does impact the intercept 
+
+# get the exponentiated value of each coefficient estimate
+coef_pre <- tidy(md_pre, effects = "fixed", 
+                 conf.int = TRUE, exponentiate = TRUE)
+
+1 - 0.9607347*1.0180955
+# 2.3% decrease in rabies affected regions per year
+1.0180955 - 1
+# 1.8% increase in rabies non-affected regions per year
+```
+
+```{r, visualisation, warning=FALSE, error=FALSE, message=FALSE, echo=FALSE, fig.width=6.5, fig.height=4.5, fig.align='center'}
+## ---- VISUALISE ----
+## plot
+### define function
+theme.LPI <- function(){
+  theme_bw()+
+    theme(axis.text.x=element_text(size=12, angle=0, vjust=0.5, hjust=0.5, 
+                                   color = "black"), 
+          axis.text.y=element_text(size=12, color = "black"), 
+          axis.title.x=element_text(size=14, face="plain"), 
+          axis.title.y=element_text(size=14, face="plain"), 
+          panel.grid.major.x=element_blank(), 
+          panel.grid.minor.x=element_blank(), 
+          panel.grid.minor.y=element_blank(), 
+          panel.grid.major.y=element_blank(), 
+          plot.margin=unit(c(0.5, 0.5, 0.5, 0.5), units= , "cm"), 
+          plot.title = element_text(size=20, vjust=1, hjust=1), 
+          legend.text = element_text(size=12, face="italic"), 
+          legend.title = element_text(size=12), 
+          legend.position= "right")
+}
+
+### predict 
+pred_pre <- data.frame(
+  ggpredict(md_pre, terms = c("yearscale [all]", "rabies"), type = "fixed", 
+            bias_correction = TRUE))
+### output 
+model_output <- 
+  ggplot() + 
+  geom_jitter(data = pre_2000, 
+              aes(x = yearscale + 1970, 
+                  y = pop, 
+                  color = rabies, 
+                  fill = rabies), 
+              alpha = 0.8) + 
+  geom_line(data = pred_pre, 
+            aes(x = x + 1970, 
+                y = predicted, 
+                color = group)) + 
+  geom_ribbon(data = pred_pre, 
+              aes(x = x + 1970, 
+                  ymin = conf.low, 
+                  ymax = conf.high, 
+                  fill = group), alpha = 0.2) +
+  labs(x = "Year", 
+       y = "Population Abundance", 
+       color = "Rabies", fill = "Rabies") +
+  annotate("text", x = 1970.5, y = 840, 
+           label = "RMSE = 73.8", 
+           color = "#F8766D", hjust = 0, size = 5) +
+  annotate("text", x = 1970.5, y = 800, 
+           label = "RMSE = 64.8", 
+           color = "#00BFC4", hjust = 0, size = 5) +
+  xlim(1970, 2000) + 
+  theme.LPI()
+
+model_output
+
+ggsave("/Users/Owner/Library/CloudStorage/OneDrive-UniversityofEdinburgh/#00_DSinEES/WWF/wwf-report/figure/model_output.png",
+       plot = model_output, width = 7, height = 5, dpi = 300)
+```
+
+Fig.2: Population trends over time in rabies-affected and rabies-free regions. Lines show fitted slopes with 95% confidence intervals; points represent raw, scaled abundance. \vspace{1em}
+
+```{r, devoff2, include=FALSE}
+# dev.off()
+```
+
+Confidence intervals overlapped early in the period but diverged through time, and the interaction between year and rabies presence was significant (*p* \< 0.001; Table.1), evidencing rabies’s impact on long-term population decline.
+
+\pagebreak
+
+\begin{center}
+Table.1: Model estimates (standard errors). All estimates are exponentiated.
+\end{center}
+
+```{r, results='asis', echo=FALSE, message=FALSE, warning=FALSE}
+tex <- capture.output(
+  stargazer(
+    md_pre,
+    coef = list(coef_pre$estimate),
+    se = list(coef_pre$std.error),
+    type = "latex",
+    digits = 3,
+    star.cutoffs = c(0.05, 0.01, 0.001),
+    header = FALSE,
+    float = FALSE,
+    title = ""
+#    table.number = FALSE
+  )
+)
+
+# Clean version info
+tex_clean <- tex[!grepl("^%", tex)]
+
+# Print with centering
+
+cat("\\begin{center}\n")
+cat(tex_clean)#, sep = "\n"
+cat("\\end{center}\n")
+
+```
+
+\subsection{Prediction Accuracy}
+
+The model explained 71 % of total variance (conditional R²) and 17 % via fixed effects alone (marginal R²). The root-mean-square error indicated an average prediction deviation of ±9 %, with greater uncertainty for rabies-free regions (Fig.2).
+
+\subsection{Assumption}
+
+Model diagnostics using DHARMa found no overdispersion (*p* = 0.23) or outliers (*p* = 1). We found deviations in residual normality and homoscedasticity, which were expected due to variation in measurement units among populations.
+
+# Discussion
+
+Rabies outbreaks were associated with long-term declines in red fox populations, as indicated by the significant interaction term. However, results should be interpreted cautiously due to potential confounding factors and limitations in temporal and spatial coverage.
+
+\subsection{Representativeness and Confounding Factors}
+
+The model showed strong population dependency, with about 50% of variance explained by random effects (conditional–marginal R² gap). In addition to scatter caused by differing measurement units, limited temporal coverage per population may bias the model toward short-term fluctuations.
+
+\vspace{1em}
+
+In rabies-affected regions, mild population-level recoveries observed in the late 1980s–1990s may correspond to oral vaccination campaigns (Delcourt et al., 2022).
+
+\vspace{1em}
+
+Population increases in rabies-free regions cannot be explained by rabies absence alone. These may reflect short-term boosts linked to urban expansion, where waste and crops provide food resources (Scott et al., 2014; Jackowiak et al., 2021). Roadside observations may amplify this effect. In the United States, rabies outbreaks among skunks and raccoons during the 1970s–1990s may have reduced interspecific competition, indirectly benefiting foxes (Ma et al., 2020).
+
+\vspace{1em}
+
+Although including population ID as a random slope and intercept helps address these biases, cautious interpretation is needed.
+
+\vspace{1em}
+
+Spatially, denser populations may be more susceptible to rabies spread, which depends on the intensity of inter and intraspecific interactions. Most samples were collected from accessible areas such as national parks or roadsides. These areas have easier access to anthropogenic food supply, likely representing high-density “rabies-vulnerable” populations. Thus, our findings may not fully capture dynamics in other ecological communities.
+
+# Conservation Recommendations
+
+Red fox populations declined where rabies occurred, which makes rabies monitoring and vaccination crucial to sustain populations. Other factors such as urban expansion and interspecific competition may be masking our interpretation. More work on these is needed to identify regional actions to sustain and control for red fox populations.
+
+# Reflection on AI Use
+
+I used ChatGPT to resolve minor coding errors that were unclear from package documentation and to clarify the logic behind model choices. While AI provided mathematically accurate explanations, I made my own decisions based on ecological relevance for choosing a model. This helped ensure that I made scientific decision on analysis, not just statistically correct.
+
+\vspace{1em}
+
+I used Perplexity to locate relevant literature, but I found that AI summaries often lacked critical interpretation. Therefore, I reviewed the original papers to build proper evidence-based arguments.
+
+\vspace{1em}
+
+When learning about linear and mixed effects models, AI explanations helped me unpack technical terminology and understand the structure of the models before consulting formal documentation. This stepwise approach made reading academic and software references less overwhelming and improved my confidence in interpreting model outputs.
+
+# References
+
+Delcourt, J. et al. (2022) ‘Fox Vulpes vulpes population trends in Western Europe during and after the eradication of rabies’, Mammal Review, 52(3), pp. 343–359. Available at: <https://doi.org/10.1111/mam.12289>. \vspace{0.5em} Jackowiak, M. et al. (2021) ‘Colonization of Warsaw by the red fox Vulpes vulpes in the years 1976–2019’, Scientific Reports, 11, p. 13931. Available at: <https://doi.org/10.1038/s41598-021-92844-2>. \vspace{0.5em} Lojkić, I. et al. (2021) ‘Current Status of Rabies and Its Eradication in Eastern and Southeastern Europe’, Pathogens, 10(6), p. 742. Available at: <https://doi.org/10.3390/pathogens10060742>. \vspace{0.5em} Ma, X. et al. (2020) ‘Public Veterinary Medicine: Public Health: Rabies surveillance in the United States during 2018’. Available at: <https://doi.org/10.2460/javma.256.2.195>. \vspace{0.5em} LPI (2024) ‘Living Planet Index database’. 2024. \< www.livingplanetindex.org/\> \vspace{0.5em} Nyberg, M. et al. (1992) ‘An epidemic of sylvatic rabies in Finland–descriptive epidemiology and results of oral vaccination’, Acta Veterinaria Scandinavica, 33(1), pp. 43–57. Available at: <https://doi.org/10.1186/BF03546935>. \vspace{0.5em} Pastoret, P.P. and Brochier, B. (1999) ‘Epidemiology and control of fox rabies in Europe’, Vaccine, 17(13), pp. 1750–1754. Available at: [https://doi.org/10.1016/S0264-410X(98)00446-0](https://doi.org/10.1016/S0264-410X(98)00446-0){.uri}. \vspace{0.5em} Scott, D.M. et al. (2014) ‘Changes in the Distribution of Red Foxes (Vulpes vulpes) in Urban Areas in Great Britain: Findings and Limitations of a Media-Driven Nationwide Survey’, PLoS ONE, 9(6), p. e99059. Available at: <https://doi.org/10.1371/journal.pone.0099059>.
+
+# Appendix
+
+Git hub Repository \< Access here: <https://github.com/EdDataScienceEES/2-wwf-report-shiirumini-ms>\>

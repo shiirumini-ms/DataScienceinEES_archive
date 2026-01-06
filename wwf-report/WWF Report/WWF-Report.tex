@@ -1,0 +1,265 @@
+\documentclass[10,a4paperpaper,]{article}
+
+  \title{WWF Report\newline Red Fox Population Trend in late 20th
+Century}
+  \author{B241110}
+  \date{\today}
+  
+
+
+\usepackage{titlesec}
+\usepackage{hyperref}
+\newcommand{\pandocbounded}[1]{#1}
+\newcommand{\logo}{logo.png}
+\newcommand{\cover}{cover-1.png}
+\newcommand{\iblue}{2b4894}
+\newcommand{\igray}{d4dbde}
+\usepackage{ragged2e}
+\justifying
+
+\include{defs}
+
+\begin{document}
+
+
+\renewcommand{\contentsname}{Table of Contents}
+
+\renewcommand{\thepage}{\arabic{page}}
+
+
+\maketitle
+\tableofcontents
+\addcontentsline{toc}{section}{Contents}
+\clearpage
+
+\section{Introduction and Summary}\label{introduction-and-summary}
+
+\subsection{About the Species}
+
+\emph{Vulpes vulpes} (red fox) is an omnivore widely found across the
+Northern Hemisphere, thriving in temperate and boreal climate. Its
+flexible diet allow them to inhabit wide range of habitats like forests,
+grasslands, and urban environments. However, their adaptability also
+makes the species a major carrier of \emph{Rabies lyssavirus}
+(``rabies''), posing risks to wildlife populations, ecosystem dynamics,
+and public health.
+
+During 1970--2000, rabies spread across continental Europe (Delcourt et
+al., 2022), but its effect on population abundance remains uncertain.
+
+\subsection{Research Question}
+
+This report aims to test how red fox population changed over 1970-2000
+between regions affected by rabies and those free from the disease. We
+expected declines where rabies occurred and stable or increasing trends
+elsewhere.
+
+\subsection{Key Findings}
+
+Red fox populations declined by 2.3 \% per year in rabies-affected
+regions and increased by 1.8 \% per year in rabies-free regions,
+suggesting rabies are associated with the population decline.
+
+\pagebreak
+
+\section{Methods}\label{methods}
+
+\subsection{Data Source and Preparation}
+
+Population data for red fox were obtained from the Living Planet
+Database (LPI, 2024), a global repository of vertebrate population time
+series derived from scientific publications, online databases, and grey
+literature. Each record includes abundance, year, population ID, and
+associated metadata (Appendix). Records span 1970--2020, and we analysed
+years covering 1970--2000, considering that rabies was eradicated by
+2000 (Lojkić et al., 2021).
+
+Based on published literatures (Nyberg et al., 1992; Pastoret \&
+Brochier, 1999; Delcourt et al., 2022), countries were classified as
+rabies-present (Belarus, Finland) or rabies-absent (Spain, United
+Kingdom, United States) (Fig.1). \vspace{1em}
+
+\begin{center}\includegraphics{WWF-Report_files/figure-latex/mapping-1} \end{center}
+
+Fig.1: Map of rabies presence by country where LPD population records
+are available (created based on literature review).
+
+\vspace{1em}
+
+Only populations counting live foxes, with ≥5 years of data were
+included. Year was scaled so the first observation equaled 0, and
+abundance values were multiplied by 10 and rounded to meet Poisson
+requirements (see below).
+
+\subsection{Model Choice and Justification}
+
+We fitted a Poisson Generalised Linear Mixed Model (GLMM) with a log
+link to model abundance change through time. The Poisson family was
+chosen because population abundance is inherently a count data with
+positively skewed distribution. Fixed effects were scaled year, rabies
+presence, and their interaction to test for differing temporal trends.
+Population ID was included as a random effect to account for repeated
+measures and differing sampling units among studies.
+
+\subsection{Assumption Checks}
+
+Residual dispersion, normality, and homoscedasticity were evaluated with
+DHARMa package, and model singularity was tested using performance
+package. All data processing, diagnostics, and visualisation were
+conducted in RStudio v4.5.1.
+
+\section{Results}\label{results}
+
+Red fox populations declined by 2.3\% per year in rabies-affected
+regions between 1970 and 2000, and populations in rabies-free regions
+increased by 1.8\% per year (Fig.2).
+
+\begin{center}\includegraphics{WWF-Report_files/figure-latex/visualisation-1} \end{center}
+
+Fig.2: Population trends over time in rabies-affected and rabies-free
+regions. Lines show fitted slopes with 95\% confidence intervals; points
+represent raw, scaled abundance. \vspace{1em}
+
+Confidence intervals overlapped early in the period but diverged through
+time, and the interaction between year and rabies presence was
+significant (\emph{p} \textless{} 0.001; Table.1), evidencing rabies's
+impact on long-term population decline.
+
+\pagebreak
+
+\begin{center}
+Table.1: Model estimates (standard errors). All estimates are exponentiated.
+\end{center}
+
+\begin{center}
+ \begin{tabular}{@{\extracolsep{5pt}}lc}  \\[-1.8ex]\hline  \hline \\[-1.8ex]   & \multicolumn{1}{c}{\textit{Dependent variable:}} \\  \cline{2-2}  \\[-1.8ex] & pop \\  \hline \\[-1.8ex]   yearscale & 1.018$^{***}$ \\    & (0.008) \\    & \\   rabiesPresent & 0.399 \\    & (0.215) \\    & \\   yearscale:rabiesPresent & 0.960$^{***}$ \\    & (0.013) \\    & \\   Constant & 104.556$^{**}$ \\    & (36.536) \\    & \\  \hline \\[-1.8ex]  Observations & 300 \\  Log Likelihood & $-$3,721.484 \\  Akaike Inf. Crit. & 7,456.968 \\  Bayesian Inf. Crit. & 7,482.895 \\  \hline  \hline \\[-1.8ex]  \textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.05; $^{**}$p$<$0.01; $^{***}$p$<$0.001} \\  \end{tabular} \end{center}
+
+\subsection{Prediction Accuracy}
+
+The model explained 71 \% of total variance (conditional R²) and 17 \%
+via fixed effects alone (marginal R²). The root-mean-square error
+indicated an average prediction deviation of ±9 \%, with greater
+uncertainty for rabies-free regions (Fig.2).
+
+\subsection{Assumption}
+
+Model diagnostics using DHARMa found no overdispersion (\emph{p} = 0.23)
+or outliers (\emph{p} = 1). We found deviations in residual normality
+and homoscedasticity, which were expected due to variation in
+measurement units among populations.
+
+\section{Discussion}\label{discussion}
+
+Rabies outbreaks were associated with long-term declines in red fox
+populations, as indicated by the significant interaction term. However,
+results should be interpreted cautiously due to potential confounding
+factors and limitations in temporal and spatial coverage.
+
+\subsection{Representativeness and Confounding Factors}
+
+The model showed strong population dependency, with about 50\% of
+variance explained by random effects (conditional--marginal R² gap). In
+addition to scatter caused by differing measurement units, limited
+temporal coverage per population may bias the model toward short-term
+fluctuations.
+
+\vspace{1em}
+
+In rabies-affected regions, mild population-level recoveries observed in
+the late 1980s--1990s may correspond to oral vaccination campaigns
+(Delcourt et al., 2022).
+
+\vspace{1em}
+
+Population increases in rabies-free regions cannot be explained by
+rabies absence alone. These may reflect short-term boosts linked to
+urban expansion, where waste and crops provide food resources (Scott et
+al., 2014; Jackowiak et al., 2021). Roadside observations may amplify
+this effect. In the United States, rabies outbreaks among skunks and
+raccoons during the 1970s--1990s may have reduced interspecific
+competition, indirectly benefiting foxes (Ma et al., 2020).
+
+\vspace{1em}
+
+Although including population ID as a random slope and intercept helps
+address these biases, cautious interpretation is needed.
+
+\vspace{1em}
+
+Spatially, denser populations may be more susceptible to rabies spread,
+which depends on the intensity of inter and intraspecific interactions.
+Most samples were collected from accessible areas such as national parks
+or roadsides. These areas have easier access to anthropogenic food
+supply, likely representing high-density ``rabies-vulnerable''
+populations. Thus, our findings may not fully capture dynamics in other
+ecological communities.
+
+\section{Conservation
+Recommendations}\label{conservation-recommendations}
+
+Red fox populations declined where rabies occurred, which makes rabies
+monitoring and vaccination crucial to sustain populations. Other factors
+such as urban expansion and interspecific competition may be masking our
+interpretation. More work on these is needed to identify regional
+actions to sustain and control for red fox populations.
+
+\section{Reflection on AI Use}\label{reflection-on-ai-use}
+
+I used ChatGPT to resolve minor coding errors that were unclear from
+package documentation and to clarify the logic behind model choices.
+While AI provided mathematically accurate explanations, I made my own
+decisions based on ecological relevance for choosing a model. This
+helped ensure that I made scientific decision on analysis, not just
+statistically correct.
+
+\vspace{1em}
+
+I used Perplexity to locate relevant literature, but I found that AI
+summaries often lacked critical interpretation. Therefore, I reviewed
+the original papers to build proper evidence-based arguments.
+
+\vspace{1em}
+
+When learning about linear and mixed effects models, AI explanations
+helped me unpack technical terminology and understand the structure of
+the models before consulting formal documentation. This stepwise
+approach made reading academic and software references less overwhelming
+and improved my confidence in interpreting model outputs.
+
+\section{References}\label{references}
+
+Delcourt, J. et al.~(2022) `Fox Vulpes vulpes population trends in
+Western Europe during and after the eradication of rabies', Mammal
+Review, 52(3), pp.~343--359. Available at:
+\url{https://doi.org/10.1111/mam.12289}. \vspace{0.5em} Jackowiak, M. et
+al.~(2021) `Colonization of Warsaw by the red fox Vulpes vulpes in the
+years 1976--2019', Scientific Reports, 11, p.~13931. Available at:
+\url{https://doi.org/10.1038/s41598-021-92844-2}. \vspace{0.5em} Lojkić,
+I. et al.~(2021) `Current Status of Rabies and Its Eradication in
+Eastern and Southeastern Europe', Pathogens, 10(6), p.~742. Available
+at: \url{https://doi.org/10.3390/pathogens10060742}. \vspace{0.5em} Ma,
+X. et al.~(2020) `Public Veterinary Medicine: Public Health: Rabies
+surveillance in the United States during 2018'. Available at:
+\url{https://doi.org/10.2460/javma.256.2.195}. \vspace{0.5em} LPI (2024)
+`Living Planet Index database'. 2024. \textless{}
+www.livingplanetindex.org/\textgreater{} \vspace{0.5em} Nyberg, M. et
+al.~(1992) `An epidemic of sylvatic rabies in Finland--descriptive
+epidemiology and results of oral vaccination', Acta Veterinaria
+Scandinavica, 33(1), pp.~43--57. Available at:
+\url{https://doi.org/10.1186/BF03546935}. \vspace{0.5em} Pastoret, P.P.
+and Brochier, B. (1999) `Epidemiology and control of fox rabies in
+Europe', Vaccine, 17(13), pp.~1750--1754. Available at:
+\url{https://doi.org/10.1016/S0264-410X(98)00446-0}. \vspace{0.5em}
+Scott, D.M. et al.~(2014) `Changes in the Distribution of Red Foxes
+(Vulpes vulpes) in Urban Areas in Great Britain: Findings and
+Limitations of a Media-Driven Nationwide Survey', PLoS ONE, 9(6),
+p.~e99059. Available at:
+\url{https://doi.org/10.1371/journal.pone.0099059}.
+
+\section{Appendix}\label{appendix}
+
+Git hub Repository \textless{} Access here:
+\url{https://github.com/EdDataScienceEES/2-wwf-report-shiirumini-ms}\textgreater{}
+
+
+\end{document}
